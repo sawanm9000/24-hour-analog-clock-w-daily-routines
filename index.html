@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24-hour Clock</title>
+    <link rel="stylesheet" href="normalize.css">
+    <link rel="stylesheet" href="calendar/css/vanilla-calendar-min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="clock">
+        <div class="border"></div>
+        <svg id="svg" viewBox="0 0 400 400" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <!-- This will be replaced -->
+            <g>
+                
+                <path id="arc1" stroke="red"></path>
+                <text>
+                    <textPath xlink:href="#arc1" fill="red">
+                        <tspan>Work</tspan>
+                    </textPath>
+                </text>
+            </g>
+        </svg>
+        <div class="line line1"></div>
+        <div class="line line2"></div>
+        <div class="line line3"></div>
+        <div class="line line4"></div>
+        <div class="line line5"></div>
+        <div class="line line6"></div>
+        <div class="line line7"></div>
+        <div class="line line8"></div>
+        <div class="line line9"></div>
+        <div class="line line10"></div>
+        <div class="line line11"></div>
+        <div class="line line12"></div>
+        <div class="lineB lineB1"></div>
+        <div class="lineB lineB2"></div>
+        <div class="lineB lineB3"></div>
+        <div class="lineB lineB4"></div>
+        <div class="lineB lineB5"></div>
+        <div class="lineB lineB6"></div>
+        <div class="lineB lineB7"></div>
+        <div class="lineB lineB8"></div>
+        <div class="lineB lineB9"></div>
+        <div class="lineB lineB10"></div>
+        <div class="lineB lineB11"></div>
+        <div class="lineB lineB12"></div>
+        <div class="hours">
+            <div class="hour-box">
+                <div>12</div>
+            </div>
+            <div class="hour-box">
+                <div>1</div>
+            </div>
+            <div class="hour-box">
+                <div>2</div>
+            </div>
+            <div class="hour-box">
+                <div>3</div>
+            </div>
+            <div class="hour-box">
+                <div>4</div>
+            </div>
+            <div class="hour-box">
+                <div>5</div>
+            </div>
+            <div class="hour-box">
+                <div>6</div>
+            </div>
+            <div class="hour-box">
+                <div>7</div>
+            </div>
+            <div class="hour-box">
+                <div>8</div>
+            </div>
+            <div class="hour-box">
+                <div>9</div>
+            </div>
+            <div class="hour-box">
+                <div>10</div>
+            </div>
+            <div class="hour-box">
+                <div>11</div>
+            </div>
+            <div class="hour-box">
+                <div>12</div>
+            </div>
+            <div class="hour-box">
+                <div>1</div>
+            </div>
+            <div class="hour-box">
+                <div>2</div>
+            </div>
+            <div class="hour-box">
+                <div>3</div>
+            </div>
+            <div class="hour-box">
+                <div>4</div>
+            </div>
+            <div class="hour-box">
+                <div>5</div>
+            </div>
+            <div class="hour-box">
+                <div>6</div>
+            </div>
+            <div class="hour-box">
+                <div>7</div>
+            </div>
+            <div class="hour-box">
+                <div>8</div>
+            </div>
+            <div class="hour-box">
+                <div>9</div>
+            </div>
+            <div class="hour-box">
+                <div>10</div>
+            </div>
+            <div class="hour-box">
+                <div>11</div>
+            </div>
+        </div>
+        <div class="hand"></div>
+        <div class="digital">
+            <!-- <div class="time">12:00<span class="meridiem"> PM</span></div>
+            <div class="task">Work</div> -->
+        </div>
+    </div>
+    <div id="myCalendar" class="vanilla-calendar"></div>
+	<script src="calendar/js/vanilla-calendar-min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
