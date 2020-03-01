@@ -14,6 +14,6 @@ Notice that there is "nw.exe" at the end of the nwjs path and that there is a sp
 
 Click "Next".
 
-4. In the the "Type a name for this shortcut:" field, you can type anything you like. E.g. "24-hour analog clock". Then click "Finish".
+4. In the "Type a name for this shortcut:" field, you can type anything you like. E.g. "24-hour analog clock". Then click "Finish".
 
 You will then be able to use the shortcut to open the app.
