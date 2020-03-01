@@ -580,6 +580,7 @@ svg g text textPath tspan {
 	border: none !important;
 	border-top: 1px solid #4c4c4c !important;
 	border-right: 1px solid #4c4c4c !important;
+	border-bottom: 1px solid #4c4c4c !important;
 }
 
 .vanilla-calendar .vanilla-calendar-date--today {
@@ -591,6 +592,7 @@ svg g text textPath tspan {
 	border-left: 1px solid #4c4c4c;
 	padding-bottom: 0px !important;
 	border-bottom: 1px solid #4c4c4c;
+	border-right: 1px solid #4c4c4c;
 }
 
 .vanilla-calendar-date:first-child {
