@@ -295,10 +295,9 @@ function setDigital() {
 
 	for (let i = 0; i < sortedToPlot.length; i++) {
 		if (
-			timeToAngle(sortedToPlot[i][1]) - 180 <=
-				timeToAngle(`${hour}:${minFull(minutes)}`) -
-					180 /* &&
-			timeToAngle(`${hour}<span class="separator">:</span>${minFull(minutes)}`) - 180 <
+			timeToAngle(sortedToPlot[i][1]) <=
+				timeToAngle(`${hour}<span class="separator">:</span>${minFull(minutes)}`)  /* &&
+			timeToAngle(`${hour}:${minFull(minutes)}`) - 180 <
 				timeToAngle(sortedToPlot[i][2]) */ &&
 			stop !== 1
 		) {
