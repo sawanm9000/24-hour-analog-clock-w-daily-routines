@@ -167,6 +167,27 @@ svg g text textPath tspan {
 	/* opacity: 0.4; */
 }
 
+/* hour-minutes (:) separator */
+@keyframes showThenHide {
+	0% {
+		opacity: 1;
+	}
+
+	99.99% {
+		opacity: 1;
+	}
+		
+	100% {
+		opacity: 0.17;
+	}
+}
+
+.separator {
+	animation-name: showThenHide;
+	animation-fill-mode: forwards;
+	animation-duration: 0.5s;
+}
+
 .meridiem {
 	font-size: 45%;
 	font-weight: 600;
