@@ -296,7 +296,7 @@ function setDigital() {
 	for (let i = 0; i < sortedToPlot.length; i++) {
 		if (
 			timeToAngle(sortedToPlot[i][1]) <=
-				timeToAngle(`${hour}<span class="separator">:</span>${minFull(minutes)}`)  /* &&
+				timeToAngle(`${hour}:${minFull(minutes)}`)  /* &&
 			timeToAngle(`${hour}:${minFull(minutes)}`) - 180 <
 				timeToAngle(sortedToPlot[i][2]) */ &&
 			stop !== 1
@@ -312,7 +312,7 @@ function setDigital() {
 	const time = document.createElement("div");
 	time.innerHTML = `
 		<div class="time">
-			${shortHour(hour)}:${minFull(minutes)}<span class="meridiem"> ${
+			${shortHour(hour)}<span class="separator">:</span>${minFull(minutes)}<span class="meridiem"> ${
 		hour >= 12 ? "PM" : "AM"
 	}</span>
 		</div>
