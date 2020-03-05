@@ -1,7 +1,7 @@
 # 24-hour Analog Clock w/ daily routines
 
 ![Screenshot](https://i.redd.it/0q1rhjutawj41.png)
-
+### [Preview | https://yohanneshabte.github.io/clock-routines/](https://yohanneshabte.github.io/clock-routines/)
 # Installation instructions
 
 1. Download the "[app](https://github.com/utopianknight/24-hour-analog-clock-w-daily-routines/archive/master.zip)" and extract the contents of the .zip file.
