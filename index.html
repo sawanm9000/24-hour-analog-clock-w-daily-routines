@@ -11,6 +11,9 @@
 </head>
 
 <body>
+    <div id="choose">
+        <input type="file" onchange="read(this)" value="Add Calendar File(ICS)"/>
+    </div>
     <div id="clock">
         <div class="border"></div>
         <svg id="svg" viewBox="0 0 400 400" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +134,8 @@
         </div>
     </div>
     <div id="myCalendar" class="vanilla-calendar"></div>
-	<script src="calendar/js/vanilla-calendar-min.js"></script>
+    <script src="calendar/js/vanilla-calendar-min.js"></script>
+    <script src="calendar/js/ical.min.js"></script>
     <script src="app.js"></script>
 </body>
 

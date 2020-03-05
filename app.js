@@ -1,6 +1,6 @@
 /* NW.js */
 
-var ngui = require("nw.gui");
+/* var ngui = require("nw.gui");
 var nwin = ngui.Window.get();
 nwin.enterFullscreen();
 
@@ -9,11 +9,79 @@ document.addEventListener("keydown", function(event) {
 	if (key === "Escape") {
 		nw.App.quit();
 	}
-});
+}); */
 
 // ############################################################
 
 // Data
+var JsonCalData = "";
+var AllEvents = [];
+function readFile(file) {
+	return new Promise((resolve, reject) => {
+	  let fr = new FileReader();
+	  fr.onload = x=> resolve(fr.result);
+	  fr.readAsText(file);
+})}
+async function read(input) {
+	var iCal = await readFile(input.files[0]);
+	JsonCalData = ICAL.parse(iCal);
+	document.getElementById("choose").style.display = "none";
+	document.getElementById("clock").style.display = "flex";
+	
+	for(var i=0;i<JsonCalData[2].length;i++) {
+		if(JsonCalData[2][i][0] == "vevent")
+			AllEvents.push(JsonCalData[2][i]);
+	}
+
+	for(var i=0;i<AllEvents.length;i++) {
+		// clean up events array
+		AllEvents[i] = AllEvents[i][1];
+	}
+	var AllEvents1 = calToArray(AllEvents);
+	console.log(AllEvents1);
+	var AllEvents1 = simplify(AllEvents1);
+}
+
+function calToArray(input) {
+	output = [];
+	for(var i=0;i<input.length;i++) {
+		output.push([]);
+		for(var j=0;j<input[i].length;j++) {
+			switch(input[i][j][0]) {
+				case "summary":
+					output[i]['title'] = input[i][j][3];
+					break;
+				case "dtend":
+					output[i]['end'] = new Date(input[i][j][3]);
+					break;
+				case "dtstart":
+					output[i]['start'] = new Date(input[i][j][3]);
+					break;
+				case "rrule":
+					output[i]['recur'] = input[i][j][3]['freq'];
+					break;
+			}
+		}
+	}
+	return output;
+}
+
+function simplify(input) {
+	var today = new Date().getTime();
+	//simplify calendar by removing past and non recurring events
+	for(var i=0; i<input.length; i++) {
+		if(!input[i]['recur'])
+			if(input[i]['end'].getTime()<=today) {
+				input.splice(i,1);
+				i--;
+			}
+	}
+	return input;
+}
+function dailySchedule(input) {
+	
+	//return;
+}
 
 const routine = {
 	sundays: [
@@ -25,8 +93,22 @@ const routine = {
 	],
 	mondays: [],
 	tuesdays: [],
-	wednesdays: [],
-	thursdays: [],
+	wednesdays: [],//["Testing", "8:00", "10:00", "#1B70E7"],
+	thursdays: [
+		["Write", "6:00", "7:00", "#7B7B7B"],
+		["Weight, posture, stretches", "7:00", "7:30", "green"],
+		["Breakfast", "7:30", "8:00", "#C00000"],
+		["Break", "10:00", "10:30", "#FFC000"],
+		["Lunch", "12:00", "12:30", "#C00000"],
+		["Nap", "12:30", "13:00", "#6A5125"],
+		["Working", "13:00", "15:00", "#1B0BE0"],
+		["Tea time", "15:00", "15:30", "#C00000"],
+		["Shower", "19:00", "19:30", "#00B0F0"],
+		["Dinner", "19:30", "20:00", "#C00000"],
+		["Read/Write", "20:00", "21:00", "#7B7B7B"],
+		["Meditation", "21:00", "22:00", "#7030A0"],
+		["Sleep", "22:00", "6:00", "#6A5125"]
+	],
 	fridays: [],
 	saturdays: [
 		["Work", "8:00", "10:00", "#1B7BE7"],
@@ -36,25 +118,27 @@ const routine = {
 		["Break", "17:30", "18:00", "#FFC000"],
 		["Exercise", "18:00", "19:00", "green"]
 	],
-	everyday: [
-		["Write", "6:00", "7:00", "#7B7B7B"],
-		["Weight, posture, stretches", "7:00", "7:30", "green"],
-		["Breakfast", "7:30", "8:00", "#C00000"],
-		["Break", "10:00", "10:30", "#FFC000"],
-		["Lunch", "12:00", "12:30", "#C00000"],
-		["Nap", "12:30", "13:00", "#6A5125"],
-		["Tea time", "15:00", "15:30", "#C00000"],
-		["Shower", "19:00", "19:30", "#00B0F0"],
-		["Dinner", "19:30", "20:00", "#C00000"],
-		["Read/Write", "20:00", "21:00", "#7B7B7B"],
-		["Meditation", "21:00", "22:00", "#7030A0"],
-		["Sleep", "22:00", "6:00", "#6A5125"]
-	],
+	everyday: [],
+	// everyday: [
+	// 	["Write", "6:00", "7:00", "#7B7B7B"],
+	// 	["Weight, posture, stretches", "7:00", "7:30", "green"],
+	// 	["Breakfast", "7:30", "8:00", "#C00000"],
+	// 	["Break", "10:00", "10:30", "#FFC000"],
+	// 	["Lunch", "12:00", "12:30", "#C00000"],
+	// 	["Nap", "12:30", "13:00", "#6A5125"],
+	// 	["Working", "13:00", "15:00", "#1B0BE0"],
+	// 	["Tea time", "15:00", "15:30", "#C00000"],
+	// 	["Shower", "19:00", "19:30", "#00B0F0"],
+	// 	["Dinner", "19:30", "20:00", "#C00000"],
+	// 	["Read/Write", "20:00", "21:00", "#7B7B7B"],
+	// 	["Meditation", "21:00", "22:00", "#7030A0"],
+	// 	["Sleep", "22:00", "6:00", "#6A5125"]
+	// ],
 	weekends: [],
 	weekdays: [
 		["Work", "8:00", "10:00", "#1B7BE7"],
 		["Work", "10:30", "12:00", "#1B7BE7"],
-		["Work", "13:00", "15:00", "#1B7BE7"],
+		["Work", "13:00", "15:00", "#1B0BEF"],
 		["Work", "15:30", "17:30", "#1B7BE7"],
 		["Break", "17:30", "18:00", "#FFC000"],
 		["Exercise", "18:00", "19:00", "green"]
@@ -320,7 +404,7 @@ function setDigital() {
 	`; // TODO
 	digital.appendChild(time);
 
-	// console.log(`${hour}:${minutes}`);
+	//console.log(`${hour}:${minutes} ${currentTask}`);
 }
 
 setInterval(setDigital, 1000);

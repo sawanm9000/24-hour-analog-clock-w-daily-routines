@@ -26,14 +26,21 @@ body {
 	height: 100%;
 	width: 100%;
 }
-
-#clock {
+#choose {
+	margin: 0 auto;
 	height: 100%;
-	width: 100vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	vertical-align: middle;
+}
+#clock {
+	height: 100%;
+	width: 100vh;
+	align-items: center;
+	justify-content: center;
 	margin: 0 auto;
+	display: none;
 }
 
 .border {
@@ -57,6 +64,12 @@ svg g path {
 	fill: none;
 	stroke-width: 5px;
 	fill-rule: evenodd;
+	cursor: pointer;
+}
+svg g path:hover {
+	stroke-width: 10px;
+	fill-rule: evenodd;
+
 }
 
 svg g text textPath {
