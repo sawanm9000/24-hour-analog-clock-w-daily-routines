@@ -12,34 +12,116 @@ document.addEventListener("keydown", function(event) {
 }); */
 
 // ############################################################
+function getRandomColor() {
+	var letters = '0123456789ABCDEF';
+	var color = '#';
+	for (var i = 0; i < 6; i++) {
+	  color += letters[Math.floor(Math.random() * 16)];
+	}
+	return color;
+}
+var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 // Data
 var JsonCalData = "";
 var AllEvents = [];
+var AllEvents1 = [];
 function readFile(file) {
 	return new Promise((resolve, reject) => {
 	  let fr = new FileReader();
 	  fr.onload = x=> resolve(fr.result);
 	  fr.readAsText(file);
 })}
+
 async function read(input) {
-	var iCal = await readFile(input.files[0]);
-	JsonCalData = ICAL.parse(iCal);
-	document.getElementById("choose").style.display = "none";
-	document.getElementById("clock").style.display = "flex";
-	
-	for(var i=0;i<JsonCalData[2].length;i++) {
-		if(JsonCalData[2][i][0] == "vevent")
-			AllEvents.push(JsonCalData[2][i]);
+	var iCal = [], JsonCalData = [];
+	console.log("Num of Files: " + input.files.length);
+	for(var i=0;i<input.files.length;i++) {
+		iCal.push();
+		JsonCalData.push();
+		iCal[i] = await readFile(input.files[i]);
+		JsonCalData[i] = ICAL.parse(iCal[i]);
 	}
 
-	for(var i=0;i<AllEvents.length;i++) {
-		// clean up events array
-		AllEvents[i] = AllEvents[i][1];
+	document.getElementById("choose").style.display = "none";
+	document.getElementById("clock").style.display = "flex";
+	for(var j=0; j<JsonCalData.length;j++) {
+		AllEvents.push([]);
+		for(var i=0;i<JsonCalData[j][2].length;i++) {
+			if(JsonCalData[j][2][i][0] == "vevent") {	
+				AllEvents[j].push(JsonCalData[j][2][i]);
+			}
+		}
 	}
-	var AllEvents1 = calToArray(AllEvents);
+	for(var j=0; j<AllEvents.length;j++)	
+		for(var i=0;i<AllEvents[j].length;i++) {
+			// clean up events array
+			AllEvents[j][i] = AllEvents[j][i][1];
+		}
+	for(var i=0;i<AllEvents.length;i++) {	
+		AllEvents1[i] = calToArray(AllEvents[i]);
+		AllEvents1[i] = simplify(AllEvents1[i]);
+
+	}
+	var daily = [];
 	console.log(AllEvents1);
-	var AllEvents1 = simplify(AllEvents1);
+	for(var i=0; i<AllEvents1.length;i++) {
+		AllEvents1[i]['color'] = getRandomColor();
+		var temp = getSchedule(AllEvents1[i], "MO", AllEvents1[i]['color']);
+		daily = [...daily, ...temp];
+	}
+	console.log(daily);
+	routine['everyday'] = daily;
+	draw();
+}
+function getSchedule(cal, dayOfWeek, color) {
+	var day = [], j = 0;
+	for(var i=0;i<cal.length;i++) {	
+		if(cal[i]['recur']['freq'] != null) {
+			// get daily events first
+			if(cal[i]['recur']['freq'] == 'DAILY') {
+				day.push([]);
+				var start = cal[i]['start'].getHours()+ ":" + (cal[i]['start'].getMinutes()<10?'0':'') + cal[i]['start'].getMinutes();
+				var end = cal[i]['end'].getHours()+ ":" + (cal[i]['end'].getMinutes()<10?'0':'') + cal[i]['end'].getMinutes();
+				day[j][0] = cal[i]['title'];
+				day[j][1] = start;
+				day[j][2] = end;
+				day[j][3] = color;
+				j++;
+			}
+			//weekly recurring events
+			if(cal[i]['recur']['freq'] == 'WEEKLY') {
+				if(cal[i]['recur']['byday'] != null && cal[i]['recur']['byday'].includes(dayOfWeek)) {
+					day.push([]);
+					var start = cal[i]['start'].getHours()+ ":" + (cal[i]['start'].getMinutes()<10?'0':'') + cal[i]['start'].getMinutes();
+					var end = cal[i]['end'].getHours()+ ":" + (cal[i]['end'].getMinutes()<10?'0':'') + cal[i]['end'].getMinutes();
+					day[j][0] = cal[i]['title'];
+					day[j][1] = start;
+					day[j][2] = end;
+					day[j][3] = color;
+					j++;
+				} else {
+					//only once a week
+					//find out day
+					if(dayOfWeek == days[cal[i]['start'].getDay()].slice(0,2).toUpperCase()) {
+						day.push([]);
+						var start = cal[i]['start'].getHours()+ ":" + (cal[i]['start'].getMinutes()<10?'0':'') + cal[i]['start'].getMinutes();
+						var end = cal[i]['end'].getHours()+ ":" + (cal[i]['end'].getMinutes()<10?'0':'') + cal[i]['end'].getMinutes();
+						day[j][0] = cal[i]['title'];
+						day[j][1] = start;
+						day[j][2] = end;
+						day[j][3] = color;
+						j++;
+					}
+				}
+			}
+		}
+	}
+	
+	
+
+	//
+	return day;
 }
 
 function calToArray(input) {
@@ -58,7 +140,7 @@ function calToArray(input) {
 					output[i]['start'] = new Date(input[i][j][3]);
 					break;
 				case "rrule":
-					output[i]['recur'] = input[i][j][3]['freq'];
+					output[i]['recur'] = input[i][j][3];
 					break;
 			}
 		}
@@ -70,18 +152,34 @@ function simplify(input) {
 	var today = new Date().getTime();
 	//simplify calendar by removing past and non recurring events
 	for(var i=0; i<input.length; i++) {
-		if(!input[i]['recur'])
+		if(input[i]['recur'] == null) {
+			// all day events
+			if(input[i]['end'] == null && input[i]['start'].getTime()<=today) {
+				input.splice(i,1);
+				i--;
+				continue;
+			}
 			if(input[i]['end'].getTime()<=today) {
 				input.splice(i,1);
 				i--;
+				continue;
 			}
+		} else {
+			// remove recur events that ended
+			if(input[i]['recur']['until'] != null) {
+				var repeatEnd = new Date(input[i]['recur']['until']);
+				if(repeatEnd.getTime()<=today) {
+					input.splice(i,1);
+					i--;
+					continue;
+				}
+			}
+		}
+
 	}
 	return input;
 }
-function dailySchedule(input) {
-	
-	//return;
-}
+
 
 const routine = {
 	sundays: [
@@ -135,14 +233,14 @@ const routine = {
 	// 	["Sleep", "22:00", "6:00", "#6A5125"]
 	// ],
 	weekends: [],
-	weekdays: [
-		["Work", "8:00", "10:00", "#1B7BE7"],
-		["Work", "10:30", "12:00", "#1B7BE7"],
-		["Work", "13:00", "15:00", "#1B0BEF"],
-		["Work", "15:30", "17:30", "#1B7BE7"],
-		["Break", "17:30", "18:00", "#FFC000"],
-		["Exercise", "18:00", "19:00", "green"]
-	]
+	weekdays: [],
+		// ["Work", "8:00", "10:00", "#1B7BE7"],
+		// ["Work", "10:30", "12:00", "#1B7BE7"],
+		// ["Work", "13:00", "15:00", "#1B0BEF"],
+		// ["Work", "15:30", "17:30", "#1B7BE7"],
+		// ["Break", "17:30", "18:00", "#FFC000"],
+		// ["Exercise", "18:00", "19:00", "green"]
+	//]
 };
 
 const sun = {
@@ -171,252 +269,253 @@ for (let i = 0; i < routine.everyday.length; i++) {
 
 	// console.log(label, startAngle, endAngle, color);
 }
+function draw() {
+	const arrayToDraw = [];
 
-const arrayToDraw = [];
+	arrayToDraw.push(routine["everyday"]);
 
-arrayToDraw.push(routine["everyday"]);
+	let day = "";
 
-let day = "";
+	today = new Date().getDay();
 
-today = new Date().getDay();
-
-switch (today) {
-	case 0:
-		day = "sundays";
-		break;
-	case 1:
-		day = "mondays";
-		break;
-	case 2:
-		day = "tuesdays";
-		break;
-	case 3:
-		day = "wednesdays";
-		break;
-	case 4:
-		day = "thursdays";
-		break;
-	case 5:
-		day = "fridays";
-		break;
-	case 6:
-		day = "saturdays";
-		break;
-}
-
-for (let key of Object.keys(routine)) {
-	if (routine[key].length !== 0 && key === day) {
-		arrayToDraw.push(routine[key]);
+	switch (today) {
+		case 0:
+			day = "sundays";
+			break;
+		case 1:
+			day = "mondays";
+			break;
+		case 2:
+			day = "tuesdays";
+			break;
+		case 3:
+			day = "wednesdays";
+			break;
+		case 4:
+			day = "thursdays";
+			break;
+		case 5:
+			day = "fridays";
+			break;
+		case 6:
+			day = "saturdays";
+			break;
 	}
 
-	if (routine["weekdays"].length !== 0 && key === day) {
-		if (
-			today === 1 ||
-			today === 2 ||
-			today === 3 ||
-			today === 4 ||
-			today === 5
-		) {
-			arrayToDraw.push(routine["weekdays"]);
+	for (let key of Object.keys(routine)) {
+		if (routine[key].length !== 0 && key === day) {
+			arrayToDraw.push(routine[key]);
+		}
+
+		if (routine["weekdays"].length !== 0 && key === day) {
+			if (
+				today === 1 ||
+				today === 2 ||
+				today === 3 ||
+				today === 4 ||
+				today === 5
+			) {
+				arrayToDraw.push(routine["weekdays"]);
+			}
+		}
+
+		if (routine["weekends"].length !== 0 && key === day) {
+			if (today === 0 || today === 6) {
+				arrayToDraw.push(routine["weekends"]);
+			}
 		}
 	}
 
-	if (routine["weekends"].length !== 0 && key === day) {
-		if (today === 0 || today === 6) {
-			arrayToDraw.push(routine["weekends"]);
-		}
+	let toPlot = [];
+
+	for (let i = 0; i < arrayToDraw.length; i++) {
+		toPlot = toPlot.concat(arrayToDraw[i]);
 	}
-}
 
-let toPlot = [];
+	function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+		var angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
 
-for (let i = 0; i < arrayToDraw.length; i++) {
-	toPlot = toPlot.concat(arrayToDraw[i]);
-}
+		return {
+			x: centerX + radius * Math.cos(angleInRadians),
+			y: centerY + radius * Math.sin(angleInRadians)
+		};
+	}
 
-function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-	var angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
-
-	return {
-		x: centerX + radius * Math.cos(angleInRadians),
-		y: centerY + radius * Math.sin(angleInRadians)
+	const arcProp = {
+		cx: 200, // <-- center x
+		cy: 200, // <-- center y
+		radius: 180 // <-- circle radius
 	};
-}
 
-const arcProp = {
-	cx: 200, // <-- center x
-	cy: 200, // <-- center y
-	radius: 180 // <-- circle radius
-};
+	// arc = {
+	// 	start_angle: 15, // <-- start angle in degrees
+	// 	end_angle: 90 // <-- end angle in degrees
+	// };
 
-// arc = {
-// 	start_angle: 15, // <-- start angle in degrees
-// 	end_angle: 90 // <-- end angle in degrees
-// };
-
-document
-	.getElementById("svg")
-	.removeChild(document.getElementById("svg").childNodes[3]);
-
-function appendG() {
 	document
 		.getElementById("svg")
 		.removeChild(document.getElementById("svg").childNodes[3]);
 
-	const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+	function appendG() {
+		document
+			.getElementById("svg")
+			.removeChild(document.getElementById("svg").childNodes[3]);
 
-	for (let i = 0; i < toPlot.length; i++) {
-		const label = toPlot[i][0];
-		const startAngle = timeToAngle(toPlot[i][1]);
-		const endAngle = timeToAngle(toPlot[i][2]);
-		const color = toPlot[i][3];
+		const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-		const start = polarToCartesian(
-			arcProp.cx,
-			arcProp.cy,
-			arcProp.radius,
-			startAngle
-		);
-		const end = polarToCartesian(
-			arcProp.cx,
-			arcProp.cy,
-			arcProp.radius,
-			endAngle
-		);
+		for (let i = 0; i < toPlot.length; i++) {
+			const label = toPlot[i][0];
+			const startAngle = timeToAngle(toPlot[i][1]);
+			const endAngle = timeToAngle(toPlot[i][2]);
+			const color = toPlot[i][3];
 
-		largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+			const start = polarToCartesian(
+				arcProp.cx,
+				arcProp.cy,
+				arcProp.radius,
+				startAngle
+			);
+			const end = polarToCartesian(
+				arcProp.cx,
+				arcProp.cy,
+				arcProp.radius,
+				endAngle
+			);
 
-		let d = [
-			"M",
-			start.x,
-			start.y,
-			"A",
-			arcProp.radius,
-			arcProp.radius,
-			0,
-			largeArcFlag,
-			1,
-			end.x,
-			end.y
-		].join(" ");
+			largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
 
-		// console.log(label, startAngle, endAngle, color);
+			let d = [
+				"M",
+				start.x,
+				start.y,
+				"A",
+				arcProp.radius,
+				arcProp.radius,
+				0,
+				largeArcFlag,
+				1,
+				end.x,
+				end.y
+			].join(" ");
 
-		const path = document.createElementNS(
-			"http://www.w3.org/2000/svg",
-			"path"
-		);
-		const text = document.createElementNS(
-			"http://www.w3.org/2000/svg",
-			"text"
-		);
-		const textPath = document.createElementNS(
-			"http://www.w3.org/2000/svg",
-			"textPath"
-		);
-		const tspan = document.createElementNS(
-			"http://www.w3.org/2000/svg",
-			"tspan"
-		);
+			// console.log(label, startAngle, endAngle, color);
 
-		textPath.setAttributeNS(
-			"http://www.w3.org/1999/xlink",
-			"xlink:href",
-			`#arc${i}`
-		);
-		textPath.setAttribute("fill", color);
-		tspanText = document.createTextNode(label);
-		tspan.appendChild(tspanText);
-		textPath.appendChild(tspan);
-		text.appendChild(textPath);
+			const path = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"path"
+			);
+			const text = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"text"
+			);
+			const textPath = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"textPath"
+			);
+			const tspan = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"tspan"
+			);
 
-		path.setAttribute("id", `arc${i}`);
-		path.setAttribute("stroke", color);
-		path.setAttribute("d", d);
+			textPath.setAttributeNS(
+				"http://www.w3.org/1999/xlink",
+				"xlink:href",
+				`#arc${i}`
+			);
+			textPath.setAttribute("fill", color);
+			tspanText = document.createTextNode(label);
+			tspan.appendChild(tspanText);
+			textPath.appendChild(tspan);
+			text.appendChild(textPath);
 
-		g.appendChild(path);
-		g.appendChild(text);
+			path.setAttribute("id", `arc${i}`);
+			path.setAttribute("stroke", color);
+			path.setAttribute("d", d);
 
-		// document.getElementById("arc1").setAttribute("d", d);
-	}
+			g.appendChild(path);
+			g.appendChild(text);
 
-	document.getElementById("svg").appendChild(g);
-}
-
-setInterval(appendG, 1800000);
-
-appendG();
-
-// ############################################################
-/* Digital and Hand */
-
-// console.log(toPlot);
-
-const sortedToPlot = toPlot.sort((a, b) => {
-	return timeToAngle(a[1]) > timeToAngle(b[1]) ? 1 : -1;
-});
-
-console.log(sortedToPlot);
-
-const hand = document.querySelector(".hand");
-const digital = document.querySelector(".digital");
-const time = document.querySelector(".time");
-const meridiem = document.querySelector(".meridiem");
-const task = document.querySelector(".task");
-
-function setDigital() {
-	const now = new Date();
-	const hour = now.getHours();
-	const minutes = now.getMinutes();
-	const minFull = minutes => (minutes < 10 ? `0${minutes}` : minutes);
-	const shortHour = hour => (hour > 12 ? hour - 12 : hour === 0 ? 12 : hour);
-	const handDegrees = (360 / 24) * hour + 180 + (360 / 1440) * minutes;
-	hand.style.transform = `rotate(${handDegrees}deg)`;
-
-	let currentTask = "";
-	let taskColor = "";
-	let stop = 0;
-
-	for (let i = 0; i < sortedToPlot.length; i++) {
-		if (
-			timeToAngle(sortedToPlot[i][1]) <=
-				timeToAngle(`${hour}:${minFull(minutes)}`)  /* &&
-			timeToAngle(`${hour}:${minFull(minutes)}`) - 180 <
-				timeToAngle(sortedToPlot[i][2]) */ &&
-			stop !== 1
-		) {
-			currentTask = sortedToPlot[i][0];
-			taskColor = sortedToPlot[i][3];
-		} else {
-			stop = 1;
+			// document.getElementById("arc1").setAttribute("d", d);
 		}
+
+		document.getElementById("svg").appendChild(g);
 	}
 
-	digital.innerHTML = "";
-	const time = document.createElement("div");
-	time.innerHTML = `
-		<div class="time">
-			${shortHour(hour)}<span class="separator">:</span>${minFull(minutes)}<span class="meridiem"> ${
-		hour >= 12 ? "PM" : "AM"
-	}</span>
-		</div>
- 		<div class="task" style="color:${taskColor}">${currentTask}</div> 
-	`; // TODO
-	digital.appendChild(time);
+	setInterval(appendG, 1800000);
 
-	//console.log(`${hour}:${minutes} ${currentTask}`);
+	appendG();
+
+	// ############################################################
+	/* Digital and Hand */
+
+	// console.log(toPlot);
+
+	const sortedToPlot = toPlot.sort((a, b) => {
+		return timeToAngle(a[1]) > timeToAngle(b[1]) ? 1 : -1;
+	});
+	console.log("To plot:");
+	console.log(sortedToPlot);
+
+	const hand = document.querySelector(".hand");
+	const digital = document.querySelector(".digital");
+	const time = document.querySelector(".time");
+	const meridiem = document.querySelector(".meridiem");
+	const task = document.querySelector(".task");
+
+	function setDigital() {
+		const now = new Date();
+		const hour = now.getHours();
+		const minutes = now.getMinutes();
+		const minFull = minutes => (minutes < 10 ? `0${minutes}` : minutes);
+		const shortHour = hour => (hour > 12 ? hour - 12 : hour === 0 ? 12 : hour);
+		const handDegrees = (360 / 24) * hour + 180 + (360 / 1440) * minutes;
+		hand.style.transform = `rotate(${handDegrees}deg)`;
+
+		let currentTask = "";
+		let taskColor = "";
+		let stop = 0;
+
+		for (let i = 0; i < sortedToPlot.length; i++) {
+			if (
+				timeToAngle(sortedToPlot[i][1]) <=
+					timeToAngle(`${hour}:${minFull(minutes)}`)  /* &&
+				timeToAngle(`${hour}:${minFull(minutes)}`) - 180 <
+					timeToAngle(sortedToPlot[i][2]) */ &&
+				stop !== 1
+			) {
+				currentTask = sortedToPlot[i][0];
+				taskColor = sortedToPlot[i][3];
+			} else {
+				stop = 1;
+			}
+		}
+
+		digital.innerHTML = "";
+		const time = document.createElement("div");
+		time.innerHTML = `
+			<div class="time">
+				${shortHour(hour)}<span class="separator">:</span>${minFull(minutes)}<span class="meridiem"> ${
+			hour >= 12 ? "PM" : "AM"
+		}</span>
+			</div>
+			<div class="task" style="color:${taskColor}">${currentTask}</div> 
+		`; // TODO
+		digital.appendChild(time);
+
+		//console.log(`${hour}:${minutes} ${currentTask}`);
+	}
+
+	setInterval(setDigital, 1000);
+
+	setDigital();
+
+	// ############################################################
+	/* Calendar */
+	// From here: https://www.cssscript.com/filterable-calendar-vanilla/
+
+	let myCalendar = new VanillaCalendar({
+		selector: "#myCalendar",
+		pastDates: true,
+		shortWeekday: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+	});
 }
-
-setInterval(setDigital, 1000);
-
-setDigital();
-
-// ############################################################
-/* Calendar */
-// From here: https://www.cssscript.com/filterable-calendar-vanilla/
-
-let myCalendar = new VanillaCalendar({
-	selector: "#myCalendar",
-	pastDates: true,
-	shortWeekday: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-});
