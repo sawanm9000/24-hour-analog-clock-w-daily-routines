@@ -4,7 +4,7 @@
 
 # Installation instructions
 
-1. Download the "[app](https://github.com/utopianknight/24-hour-analog-clock-w-daily-routines/archive/master.zip)" and extract the contents of the .zip file.
+1. Download the "[app](https://github.com/sawanm9000/24-hour-analog-clock-w-daily-routines/archive/master.zip)" and extract the contents of the .zip file.
 2. Go to [https://nwjs.io/](https://nwjs.io/) and click on the "Normal" download button then extract its contents.
 3. Go to Desktop, <u>right-click on an empty area > New > Shortcut</u> and enter the following:
 
